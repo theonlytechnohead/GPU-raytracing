@@ -41,13 +41,24 @@ public class Test : MonoBehaviour
         if (spheres == null) {
             spheres = new Sphere[10];
             for (int i = 0; i < spheres.Length; i++) {
-                spheres[i] = new Sphere();
-                spheres[i].radius = Random.Range(1, 3) * 0.5f;
-                spheres[i].position = new Vector3(Random.Range(-5, 5), Random.Range(0, 3) + spheres[i].radius * 2, Random.Range(-5, 5));
+                Sphere sphere = new Sphere();
+                sphere.radius = Random.Range(1, 3) * 0.5f;
+                sphere.position = new Vector3(Random.Range(-5, 5), Random.Range(0, 3) + sphere.radius * 2, Random.Range(-5, 5));
+                bool illegalPos = false;
+                foreach (Sphere sp in spheres) {
+                    float minDistance = sphere.radius + sp.radius + 0.1f;
+                    if (Vector3.Distance(sp.position, sphere.position) <= minDistance) {
+                        illegalPos = true;
+                        break;
+                    }
+                }
                 Color c = Random.ColorHSV(0.0f, 1f, 0.5f, 1f, 1f, 1f);
-                spheres[i].colour = new Vector3(c.r, c.g, c.b);
-                spheres[i].emissive = Random.Range(0f, 0.6f) > 0.5f ? Random.Range(2.5f, 5f) : 0f;
-                //spheres[i].emissive = 0f;
+                sphere.colour = new Vector3(c.r, c.g, c.b);
+                sphere.emissive = Random.Range(0f, 0.6f) > 0.5f ? Random.Range(3f, 5f) : 0f;
+                if (illegalPos) 
+                    i--;
+                else
+                    spheres[i] = sphere;
             }
             spheres[0].emissive = 5f;
         }
