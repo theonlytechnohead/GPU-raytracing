@@ -63,9 +63,16 @@ public class Test : MonoBehaviour
             spheres[0].emissive = 5f;
         }
 
-        // modulate spheres up and down
+        // modulate spheres up and down and change colour for emissive spheres
         for (int i = 0; i < spheres.Length; i++) {
             spheres[i].position.y += (1.5f - spheres[i].radius) * Mathf.Sin(Time.time) * 0.01f;
+            if (spheres[i].emissive > 0f) {
+                float h, s, v;
+                Color.RGBToHSV(new Color(spheres[i].colour.x, spheres[i].colour.y, spheres[i].colour.z), out h, out s, out v);
+                h += 1 / 360f % 1f;
+                Color colour = Color.HSVToRGB(h, s, v);
+                spheres[i].colour = new Vector3(colour.r, colour.g, colour.b);
+            }
         }
         return spheres;
     }
