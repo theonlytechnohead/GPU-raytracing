@@ -97,7 +97,7 @@ public class Test : MonoBehaviour
             raytracingShader.SetFloat("kc", lighting.kc);
             raytracingShader.SetFloat("kl", lighting.kl);
             raytracingShader.SetFloat("kq", lighting.kq);
-            raytracingShader.Dispatch(0, renderTexture.width / 16, renderTexture.height / 16, 3);
+            raytracingShader.Dispatch(0, renderTexture.width / 32, renderTexture.height / 32, 1);
             buffer.Release();
         } else {
             testShader.SetTexture(0, "Input", source);

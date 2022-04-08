@@ -161,7 +161,7 @@ float3 Shade(inout Ray ray, RayHit hit)
     }
 }
 
-[numthreads(16,16,3)]
+[numthreads(32,32,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     // Get the dimensions of the RenderTexture
