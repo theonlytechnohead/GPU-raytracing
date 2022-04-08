@@ -8,11 +8,6 @@ struct Sphere {
     float emissive;
 };
 
-float3 lightPos;
-float lightIntensity;
-float3 ambientLight;
-float3 diffuseLight;
-float3 specularLight;
 float kc;
 float kl;
 float kq;
@@ -49,7 +44,7 @@ struct RayHit
     float distance;
     float3 normal;
     float3 colour;
-    float emissive;
+    float3 emissive;
 };
 
 RayHit CreateRayHit()
@@ -105,7 +100,12 @@ void IntersectSphere(Ray ray, inout RayHit bestHit, uint i)
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = normalize(bestHit.position - sphere.xyz);
         bestHit.colour = spheres[i].colour;
-        bestHit.emissive = spheres[i].colour * spheres[i].emissive;
+        if (any(spheres[i].emissive)) {
+            bestHit.emissive = spheres[i].colour * (spheres[i].emissive - 1.5f);
+        }
+        else {
+            bestHit.emissive = 0;
+        }
     }
 }
 
@@ -122,46 +122,10 @@ RayHit Trace(Ray ray)
     return bestHit;
 }
 
-RayHit Trace(Ray ray, out Sphere HitSphere)
-{
-    RayHit bestHit = CreateRayHit();
-    IntersectGroundPlane(ray, bestHit);
-    uint count;
-    uint stride;
-    spheres.GetDimensions(count, stride);
-    float closest = 1.#INF;
-    for (uint i = 0; i < count; i++) {
-        IntersectSphere(ray, bestHit, i);
-        if (bestHit.distance < closest) {
-            HitSphere = spheres[i];
-        }
-    }
-    return bestHit;
-}
-
-float3 phongIllumination(float3 colour, float specularity, float3 position, float3 normal, float3 eye) {
-    float3 lightDirection = lightPos - position;
-    float3 diffuseAngle = dot(lightDirection, normal) / length(lightDirection) * length(normal);
-
-    float3 halfway = normalize(normalize(lightDirection) + normalize(eye));
-    float3 specularAngle = pow(abs(dot(halfway, normal) / length(halfway) * length(normal)), specularity);
-
-    float lightDistance = length(lightDirection);
-    float3 inverseSquareLaw = kc + kl * lightDistance + kq * lightDistance * lightDistance;
-    return ambientLight * colour + (diffuseLight * diffuseAngle * colour + specularLight * specularAngle) / inverseSquareLaw;
-}
-
 float3 Shade(inout Ray ray, RayHit hit)
 {
     if (hit.distance < 1.#INF)
     {
-       //return phongIllumination(hit.colour, hit.specular, hit.position, hit.normal, ray.direction * -1);
-        
-        // Reflect the ray and multiply energy with specular reflection
-        //ray.origin = hit.position + hit.normal * 0.001f;
-        //ray.direction = reflect(ray.direction, hit.normal);
-        //ray.energy *= 0;
-
         // iterate through all emissive balls, sum light
         float3 light;
         float3 position = hit.position + hit.normal * 0.001f;
@@ -173,29 +137,17 @@ float3 Shade(inout Ray ray, RayHit hit)
                 Sphere sphere;
                 Ray sphereRay = CreateRay(position, normalize(spheres[i].position - position));
                 RayHit emissiveHit = Trace(sphereRay);
-                float sphereDistance = spheres[i].position - hit.position;
-                if (emissiveHit.emissive > 0 && all(emissiveHit.colour == spheres[i].colour)) {
+                float3 sphereDistance = spheres[i].position - hit.position;
+                if (any(emissiveHit.emissive) && all(emissiveHit.colour == spheres[i].colour)) {
                     float lightDistance = emissiveHit.distance;
                     float3 diffuseAngle = dot(sphereRay.direction, hit.normal) / length(sphereRay.direction) * length(hit.normal);
                     float3 inverseSquareLaw = kc + kl * lightDistance + kq * lightDistance * lightDistance;
-                    light += emissiveHit.emissive * emissiveHit.colour * diffuseAngle / inverseSquareLaw;
+                    light += emissiveHit.emissive * hit.colour * diffuseAngle / inverseSquareLaw;
                 }
             }
         }
-
-        // Shadow test ray
-        //float3 position = hit.position + hit.normal * 0.001f;
-        //Ray shadowRay = CreateRay(position, normalize(lightPos - position));
-        //Ray shadowRay = CreateRay(hit.position + hit.normal * 0.001f, normalize(lightPos - hit.position));
-        //RayHit shadowHit = Trace(shadowRay);
-        //if (shadowHit.distance < length(lightPos - position))
-        //{
-            //return light;
-        //}
-
         // Return colour
-        return light * hit.colour;
-        //return saturate(dot(hit.normal, normalize(lightPos - hit.position))) * lightIntensity * hit.colour + light;
+        return light;
     }
     else
     {
@@ -221,16 +173,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     Ray ray = CreateCameraRay(uv);
     // Trace and shade
     float3 result = float3(0, 0, 0);
-    for (int i = 0; i < 1; i++)
-    {
-        RayHit hit = Trace(ray);
-        if (hit.emissive > 0) {
-            result = hit.colour;
-            break;
-        }
-        result += ray.energy * Shade(ray, hit);
-        if (!any(ray.energy))
-            break;
+    RayHit hit = Trace(ray);
+    if (any(hit.emissive)) {
+        result = hit.colour;
+    }
+    else {
+        result = Shade(ray, hit);
     }
     Result[id.xy] = float4(result, 1);
 }

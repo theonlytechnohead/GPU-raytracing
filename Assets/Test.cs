@@ -54,7 +54,7 @@ public class Test : MonoBehaviour
                 }
                 Color c = Random.ColorHSV(0.0f, 1f, 0.5f, 1f, 1f, 1f);
                 sphere.colour = new Vector3(c.r, c.g, c.b);
-                sphere.emissive = Random.Range(0f, 0.6f) > 0.5f ? Random.Range(3f, 5f) : 0f;
+                sphere.emissive = Random.Range(0f, 0.6f) > 0.5f ? Random.Range(2f, 4f) : 0f;
                 if (illegalPos) 
                     i--;
                 else
@@ -94,11 +94,6 @@ public class Test : MonoBehaviour
             raytracingShader.SetMatrix("_CameraToWorld", mainCamera.cameraToWorldMatrix);
             raytracingShader.SetMatrix("_CameraInverseProjection", mainCamera.projectionMatrix.inverse);
             // send lighting data
-            raytracingShader.SetVector("lightPos", lighting.lightPosition);
-            raytracingShader.SetFloat("lightIntensity", lighting.lightIntensity);
-            raytracingShader.SetVector("ambientLight", lighting.ambientLight);
-            raytracingShader.SetVector("diffuseLight", lighting.diffuseLight);
-            raytracingShader.SetVector("specularLight", lighting.specularLight);
             raytracingShader.SetFloat("kc", lighting.kc);
             raytracingShader.SetFloat("kl", lighting.kl);
             raytracingShader.SetFloat("kq", lighting.kq);
