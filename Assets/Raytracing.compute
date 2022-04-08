@@ -5,7 +5,7 @@ struct Sphere {
     float3 position;
     float radius;
     float3 colour;
-    float specularity;
+    float emissive;
 };
 
 float3 lightPos;
@@ -49,7 +49,7 @@ struct RayHit
     float distance;
     float3 normal;
     float3 colour;
-    float specular;
+    float emissive;
 };
 
 RayHit CreateRayHit()
@@ -84,7 +84,7 @@ void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = float3(0.0f, 1.0f, 0.0f);
         bestHit.colour = float3(0.2f, 0.2f, 0.2f);
-        bestHit.specular = 0;
+        bestHit.emissive = 0;
     }
 }
 
@@ -105,7 +105,7 @@ void IntersectSphere(Ray ray, inout RayHit bestHit, uint i)
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = normalize(bestHit.position - sphere.xyz);
         bestHit.colour = spheres[i].colour;
-        bestHit.specular = spheres[i].specularity;
+        bestHit.emissive = spheres[i].colour * spheres[i].emissive;
     }
 }
 
@@ -118,6 +118,23 @@ RayHit Trace(Ray ray)
     spheres.GetDimensions(count, stride);
     for (uint i = 0; i < count; i++) {
         IntersectSphere(ray, bestHit, i);
+    }
+    return bestHit;
+}
+
+RayHit Trace(Ray ray, out Sphere HitSphere)
+{
+    RayHit bestHit = CreateRayHit();
+    IntersectGroundPlane(ray, bestHit);
+    uint count;
+    uint stride;
+    spheres.GetDimensions(count, stride);
+    float closest = 1.#INF;
+    for (uint i = 0; i < count; i++) {
+        IntersectSphere(ray, bestHit, i);
+        if (bestHit.distance < closest) {
+            HitSphere = spheres[i];
+        }
     }
     return bestHit;
 }
@@ -141,22 +158,44 @@ float3 Shade(inout Ray ray, RayHit hit)
        //return phongIllumination(hit.colour, hit.specular, hit.position, hit.normal, ray.direction * -1);
         
         // Reflect the ray and multiply energy with specular reflection
-        ray.origin = hit.position + hit.normal * 0.001f;
-        ray.direction = reflect(ray.direction, hit.normal);
-        ray.energy *= 0;
+        //ray.origin = hit.position + hit.normal * 0.001f;
+        //ray.direction = reflect(ray.direction, hit.normal);
+        //ray.energy *= 0;
 
-        // Shadow test ray
+        // iterate through all emissive balls, sum light
+        float3 light;
         float3 position = hit.position + hit.normal * 0.001f;
-        Ray shadowRay = CreateRay(position, normalize(lightPos - position));
-        //Ray shadowRay = CreateRay(hit.position + hit.normal * 0.001f, normalize(lightPos - hit.position));
-        RayHit shadowHit = Trace(shadowRay);
-        if (shadowHit.distance < length(lightPos - position))
-        {
-            return 0;
+        uint count;
+        uint stride;
+        spheres.GetDimensions(count, stride);
+        for (uint i = 0; i < count; i++) {
+            if (spheres[i].emissive > 0) {
+                Sphere sphere;
+                Ray sphereRay = CreateRay(position, normalize(spheres[i].position - position));
+                RayHit emissiveHit = Trace(sphereRay);
+                float sphereDistance = spheres[i].position - hit.position;
+                if (emissiveHit.emissive > 0 && all(emissiveHit.colour == spheres[i].colour)) {
+                    float lightDistance = emissiveHit.distance;
+                    float3 diffuseAngle = dot(sphereRay.direction, hit.normal) / length(sphereRay.direction) * length(hit.normal);
+                    float3 inverseSquareLaw = kc + kl * lightDistance + kq * lightDistance * lightDistance;
+                    light += emissiveHit.emissive * emissiveHit.colour * diffuseAngle / inverseSquareLaw;
+                }
+            }
         }
 
+        // Shadow test ray
+        //float3 position = hit.position + hit.normal * 0.001f;
+        //Ray shadowRay = CreateRay(position, normalize(lightPos - position));
+        //Ray shadowRay = CreateRay(hit.position + hit.normal * 0.001f, normalize(lightPos - hit.position));
+        //RayHit shadowHit = Trace(shadowRay);
+        //if (shadowHit.distance < length(lightPos - position))
+        //{
+            //return light;
+        //}
+
         // Return colour
-        return saturate(dot(hit.normal, normalize(lightPos - hit.position))) * lightIntensity * hit.colour;
+        return light * hit.colour;
+        //return saturate(dot(hit.normal, normalize(lightPos - hit.position))) * lightIntensity * hit.colour + light;
     }
     else
     {
@@ -185,6 +224,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     for (int i = 0; i < 1; i++)
     {
         RayHit hit = Trace(ray);
+        if (hit.emissive > 0) {
+            result = hit.colour;
+            break;
+        }
         result += ray.energy * Shade(ray, hit);
         if (!any(ray.energy))
             break;

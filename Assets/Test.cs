@@ -21,7 +21,7 @@ public class Test : MonoBehaviour
         public Vector3 position;
         public float radius;
         public Vector3 colour;
-        public float emmissive;
+        public float emissive;
     }
     
     // Start is called before the first frame update
@@ -44,10 +44,12 @@ public class Test : MonoBehaviour
                 spheres[i] = new Sphere();
                 spheres[i].radius = Random.Range(1, 3) * 0.5f;
                 spheres[i].position = new Vector3(Random.Range(-5, 5), Random.Range(0, 3) + spheres[i].radius * 2, Random.Range(-5, 5));
-                Color c = Random.ColorHSV(0f, 1f, 0f, 1f, 0.3f, 0.7f);
+                Color c = Random.ColorHSV(0.0f, 1f, 0.5f, 1f, 1f, 1f);
                 spheres[i].colour = new Vector3(c.r, c.g, c.b);
-                spheres[i].emmissive = Random.Range(0f, 0.8f) > 0.5f ? 0f : 0.8f;
+                spheres[i].emissive = Random.Range(0f, 0.6f) > 0.5f ? Random.Range(2.5f, 5f) : 0f;
+                //spheres[i].emissive = 0f;
             }
+            spheres[0].emissive = 5f;
         }
 
         // modulate spheres up and down
