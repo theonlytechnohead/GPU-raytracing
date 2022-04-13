@@ -138,11 +138,13 @@ float3 Shade(inout Ray ray, RayHit hit)
                 Ray sphereRay = CreateRay(position, normalize(spheres[i].position - position));
                 RayHit emissiveHit = Trace(sphereRay);
                 float3 sphereDistance = spheres[i].position - hit.position;
-                if (any(emissiveHit.emissive) && all(emissiveHit.colour == spheres[i].colour)) {
-                    float lightDistance = emissiveHit.distance;
-                    float3 diffuseAngle = dot(sphereRay.direction, hit.normal) / length(sphereRay.direction) * length(hit.normal);
-                    float3 inverseSquareLaw = kc + kl * lightDistance + kq * lightDistance * lightDistance;
-                    light += emissiveHit.emissive * hit.colour * diffuseAngle / inverseSquareLaw;
+                if (distance(spheres[i].position, hit.position) < pow(abs(spheres[i].emissive * 2), 2)) {
+                    if (any(emissiveHit.emissive) && all(emissiveHit.colour == spheres[i].colour)) {
+                        float lightDistance = emissiveHit.distance;
+                        float3 diffuseAngle = dot(sphereRay.direction, hit.normal) / length(sphereRay.direction) * length(hit.normal);
+                        float3 inverseSquareLaw = kc + kl * lightDistance + kq * lightDistance * lightDistance;
+                        light += emissiveHit.emissive * hit.colour * diffuseAngle / inverseSquareLaw;
+                    }
                 }
             }
         }

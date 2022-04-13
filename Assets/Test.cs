@@ -40,7 +40,7 @@ public class Test : MonoBehaviour
     Sphere[] GenerateRandomSpheres () {
         if (spheres == null) {
             spheres = new Sphere[10];
-            for (int i = 0; i < spheres.Length; i++) {
+            for (int i = 1; i < spheres.Length; i++) {
                 Sphere sphere = new Sphere();
                 sphere.radius = Random.Range(1, 3) * 0.5f;
                 sphere.position = new Vector3(Random.Range(-5, 5), Random.Range(0, 3) + sphere.radius * 2, Random.Range(-5, 5));
@@ -60,11 +60,16 @@ public class Test : MonoBehaviour
                 else
                     spheres[i] = sphere;
             }
-            spheres[0].emissive = 5f;
+            Sphere sun = new Sphere();
+            sun.radius = 1f;
+            sun.position = new Vector3(0f, 10f, 0f);
+            sun.colour = new Vector3(1f, 1f, 1f);
+            sun.emissive = 6f;
+            spheres[0] = sun;
         }
 
         // modulate spheres up and down and change colour for emissive spheres
-        for (int i = 0; i < spheres.Length; i++) {
+        for (int i = 1; i < spheres.Length; i++) {
             spheres[i].position.y += (1.5f - spheres[i].radius) * Mathf.Sin(Time.time) * 0.01f;
             if (spheres[i].emissive > 0f) {
                 float h, s, v;
