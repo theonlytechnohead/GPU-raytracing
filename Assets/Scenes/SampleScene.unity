@@ -268,8 +268,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Enable: 1
   Raytrace: 1
+  ACES: 1
   testShader: {fileID: 7200000, guid: 9a8a869aa327f9142982fb757e257514, type: 3}
   raytracingShader: {fileID: 7200000, guid: d55eebc7fad1c82409bbe41d6ac77dd2, type: 3}
   Skybox: {fileID: 2800000, guid: cd6d0dcf38435ef4f96d5891607f4dee, type: 3}
   lighting: {fileID: 11400000, guid: 9b8f4338c090ff6438dbaa0d37f9a273, type: 2}
+  groundColour: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
   renderTexture: {fileID: 0}

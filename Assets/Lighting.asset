@@ -12,11 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90f2a74acd93e0f42bfc8a5c2f485360, type: 3}
   m_Name: Lighting
   m_EditorClassIdentifier: 
-  ambientLight: {r: 0, g: 0, b: 0, a: 0}
-  diffuseLight: {r: 1, g: 1, b: 1, a: 0}
-  specularLight: {r: 1, g: 1, b: 1, a: 0}
-  lightPosition: {x: 0, y: 4, z: 0}
-  lightIntensity: 1
   kc: 1
-  kl: 0.25
+  kl: 0.5
   kq: 0
+  ground: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
+  sky: {r: 0, g: 0, b: 0, a: 1}

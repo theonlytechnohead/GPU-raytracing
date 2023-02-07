@@ -12,6 +12,11 @@ float kc;
 float kl;
 float kq;
 
+float4 groundColour;
+float4 skyColour;
+
+bool aces;
+
 RWStructuredBuffer<Sphere> spheres;
 RWTexture2D<float4> Result;
 
@@ -78,7 +83,7 @@ void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
         bestHit.distance = t;
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = float3(0.0f, 1.0f, 0.0f);
-        bestHit.colour = float3(0.2f, 0.2f, 0.2f);
+        bestHit.colour = groundColour.xyz;
         bestHit.emissive = 0;
     }
 }
@@ -159,8 +164,19 @@ float3 Shade(inout Ray ray, RayHit hit)
         float theta = acos(ray.direction.y) / -PI;
         float phi = atan2(ray.direction.x, -ray.direction.z) / -PI * 0.5f;
         //return _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(phi, theta), 0).xyz;
-        return float3(0, 0, 0);
+        return skyColour.xyz;
     }
+}
+
+
+float3 ACESFilm(float3 x)
+{
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
 [numthreads(32,32,1)]
@@ -181,6 +197,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     }
     else {
         result = Shade(ray, hit);
+        if (aces) {
+            result = ACESFilm(result);
+        }
     }
+    
     Result[id.xy] = float4(result, 1);
 }

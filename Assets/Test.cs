@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class Test : MonoBehaviour
-{
+public class Test : MonoBehaviour {
     public bool Enable = true;
     public bool Raytrace = true;
-    
+    public bool ACES = true;
+
     public ComputeShader testShader;
     public ComputeShader raytracingShader;
     public Texture Skybox;
@@ -23,18 +21,16 @@ public class Test : MonoBehaviour
         public Vector3 colour;
         public float emissive;
     }
-    
+
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start () {
         mainCamera = GetComponent<Camera>();
-        
+
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
+    void Update () {
+
     }
 
     Sphere[] GenerateRandomSpheres () {
@@ -55,7 +51,8 @@ public class Test : MonoBehaviour
                 Color c = Random.ColorHSV(0.0f, 1f, 0.5f, 1f, 1f, 1f);
                 sphere.colour = new Vector3(c.r, c.g, c.b);
                 sphere.emissive = Random.Range(0f, 0.6f) > 0.5f ? Random.Range(2f, 4f) : 0f;
-                if (illegalPos) 
+                //sphere.emissive = 0f;
+                if (illegalPos)
                     i--;
                 else
                     spheres[i] = sphere;
@@ -66,6 +63,13 @@ public class Test : MonoBehaviour
             sun.colour = new Vector3(1f, 1f, 1f);
             sun.emissive = 6f;
             spheres[0] = sun;
+
+            Sphere moon = new Sphere();
+            moon.radius = 0.25f;
+            moon.position = new Vector3(10f, 1f, 0f);
+            moon.colour = new Vector3(0.5f, 0.5f, 1f);
+            moon.emissive = 4f;
+            spheres[spheres.Length - 1] = moon;
         }
 
         // modulate spheres up and down and change colour for emissive spheres
@@ -82,7 +86,7 @@ public class Test : MonoBehaviour
         return spheres;
     }
 
-    public void CreateScene() {
+    public void CreateScene () {
         spheres = null;
         Raytrace = true;
     }
@@ -109,7 +113,12 @@ public class Test : MonoBehaviour
             raytracingShader.SetFloat("kc", lighting.kc);
             raytracingShader.SetFloat("kl", lighting.kl);
             raytracingShader.SetFloat("kq", lighting.kq);
+            raytracingShader.SetVector("groundColour", lighting.ground);
+            raytracingShader.SetVector("skyColour", lighting.sky);
+            raytracingShader.SetBool("aces", ACES);
+            // dispatch the texture to be computed
             raytracingShader.Dispatch(0, renderTexture.width / 32, renderTexture.height / 32, 1);
+            // all data has been fetched, it is safe to release the buffer from system memory
             buffer.Release();
         } else {
             testShader.SetTexture(0, "Input", source);
