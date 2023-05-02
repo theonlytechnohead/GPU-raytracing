@@ -10,6 +10,9 @@ public class Test : MonoBehaviour {
     public Texture Skybox;
     public Lighting lighting;
     Sphere[] spheres;
+    [Range(1, 70)]
+    public int numSpheres = 10;
+    float radius;
 
     public RenderTexture renderTexture;
 
@@ -34,12 +37,13 @@ public class Test : MonoBehaviour {
     }
 
     Sphere[] GenerateRandomSpheres () {
+        radius = numSpheres / 2;
         if (spheres == null) {
-            spheres = new Sphere[10];
+            spheres = new Sphere[numSpheres];
             for (int i = 1; i < spheres.Length; i++) {
                 Sphere sphere = new Sphere();
                 sphere.radius = Random.Range(1, 3) * 0.5f;
-                sphere.position = new Vector3(Random.Range(-5, 5), Random.Range(0, 3) + sphere.radius * 2, Random.Range(-5, 5));
+                sphere.position = new Vector3(Random.Range(-radius, radius), Random.Range(0, 3) + sphere.radius * 2, Random.Range(-radius, radius));
                 bool illegalPos = false;
                 foreach (Sphere sp in spheres) {
                     float minDistance = sphere.radius + sp.radius + 0.1f;

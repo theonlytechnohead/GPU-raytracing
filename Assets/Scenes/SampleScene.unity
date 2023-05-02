@@ -273,5 +273,5 @@ MonoBehaviour:
   raytracingShader: {fileID: 7200000, guid: d55eebc7fad1c82409bbe41d6ac77dd2, type: 3}
   Skybox: {fileID: 2800000, guid: cd6d0dcf38435ef4f96d5891607f4dee, type: 3}
   lighting: {fileID: 11400000, guid: 9b8f4338c090ff6438dbaa0d37f9a273, type: 2}
-  groundColour: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
+  numSpheres: 10
   renderTexture: {fileID: 0}
